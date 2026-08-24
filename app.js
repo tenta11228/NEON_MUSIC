@@ -9,7 +9,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({
   "'": "&#39;"
 }[m]));
 
-const byId = (arr, id) => arr.find(x => x.id === id);
+const byId = (arr, id) => (arr || []).find(x => x.id === id);
 const query = () => new URLSearchParams(location.search);
 
 const songUrl = id => `song.html?id=${encodeURIComponent(id)}`;
@@ -17,6 +17,30 @@ const playlistUrl = id => `playlist.html?id=${encodeURIComponent(id)}`;
 const albumUrl = id => `album.html?id=${encodeURIComponent(id)}`;
 const artistUrl = id => `artist.html?id=${encodeURIComponent(id)}`;
 const categoryUrl = id => `category.html?id=${encodeURIComponent(id)}`;
+
+function fallbackCover(text = "NEON MUSIC") {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800">
+      <rect width="100%" height="100%" fill="#151525"/>
+      <rect x="30" y="30" width="740" height="740" rx="40" fill="none" stroke="#7c4dff" stroke-width="3"/>
+      <circle cx="400" cy="350" r="140" fill="#7c4dff" opacity=".2"/>
+      <text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="Arial" font-size="54" font-weight="bold">NEON</text>
+      <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" fill="#b7a6ff" font-family="Arial" font-size="30">${String(text).slice(0, 22)}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function safeSongCover(song) {
+  try {
+    if (typeof getSongCover === "function") {
+      return getSongCover(song);
+    }
+  } catch (e) {}
+
+  return song?.cover || fallbackCover(song?.title || "NEON MUSIC");
+}
 
 function empty(text = "هنوز محتوایی برای نمایش وجود ندارد.") {
   return `
@@ -30,14 +54,13 @@ function empty(text = "هنوز محتوایی برای نمایش وجود ند
 
 function songCard(s) {
   const i = DATA.songs.findIndex(x => x.id === s.id);
-  const cover = getSongCover(s);
 
   return `
     <article class="song-card">
       <a href="${songUrl(s.id)}" class="cover-wrap">
         <img
           class="song-cover lazy-cover"
-          src="${cover}"
+          src="${safeSongCover(s)}"
           alt="کاور ${esc(s.title)}"
           loading="lazy"
           data-song="${esc(s.id)}"
@@ -63,20 +86,44 @@ function songCard(s) {
   `;
 }
 
-function section(title, content, href) {
+function songRow(s, num) {
+  const i = DATA.songs.findIndex(x => x.id === s.id);
+
   return `
-    <section class="section">
-      <div class="section-head">
-        <h2>${title}</h2>
-        ${href ? `<a href="${href}">مشاهده همه ←</a>` : ""}
+    <article class="song-row">
+      <span class="row-number">${String(num).padStart(2, "0")}</span>
+
+      <a href="${songUrl(s.id)}">
+        <img
+          src="${safeSongCover(s)}"
+          class="row-cover lazy-cover"
+          data-song="${esc(s.id)}"
+          alt="کاور ${esc(s.title)}"
+        >
+      </a>
+
+      <div class="row-main">
+        <a href="${songUrl(s.id)}">
+          <b>${esc(s.title)}</b>
+        </a>
+
+        <span>${esc(s.artist || "هنرمند نامشخص")}</span>
       </div>
-      ${content}
-    </section>
+
+      <span class="row-album">${esc(s.album || "—")}</span>
+      <span class="row-duration">${esc(s.duration || "—")}</span>
+
+      <div class="row-actions">
+        <button onclick="Player.load(${i}, true)" aria-label="پخش">▶</button>
+        <a href="${esc(s.audio)}" download aria-label="دانلود">⇩</a>
+        <a href="${songUrl(s.id)}">⋯</a>
+      </div>
+    </article>
   `;
 }
 
 function songGrid(list) {
-  return list.length
+  return list && list.length
     ? `<div class="song-grid">${list.map(songCard).join("")}</div>`
     : empty();
 }
@@ -89,8 +136,50 @@ function playlistSongs(id) {
     .filter(Boolean);
 }
 
+function cardGrid(list, type) {
+  if (!list || !list.length) return empty();
+
+  const urlMap = {
+    playlist: playlistUrl,
+    album: albumUrl,
+    artist: artistUrl,
+    category: categoryUrl
+  };
+
+  return `
+    <div class="entity-grid">
+      ${list.map(x => {
+        const title = x.title || x.name || x.id;
+        const cover = x.cover || fallbackCover(title);
+
+        return `
+          <a class="entity-card" href="${urlMap[type](x.id)}">
+            <img
+              src="${cover}"
+              alt="${esc(title)}"
+              loading="lazy"
+            >
+
+            <div>
+              <b>${esc(title)}</b>
+
+              <span>
+                ${
+                  type === "playlist"
+                    ? `${(x.songIds || []).length} آهنگ`
+                    : esc(x.description || x.artist || "")
+                }
+              </span>
+            </div>
+          </a>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function renderHome() {
-  const latest = [...DATA.songs].slice().reverse().slice(0, 8);
+  const latest = [...(DATA.songs || [])].slice().reverse().slice(0, 8);
   const popular = playlistSongs("popular").slice(0, 8);
 
   app.innerHTML = `
@@ -169,79 +258,6 @@ function renderHome() {
   `;
 }
 
-function songRow(s, num) {
-  const i = DATA.songs.findIndex(x => x.id === s.id);
-
-  return `
-    <article class="song-row">
-      <span class="row-number">${String(num).padStart(2, "0")}</span>
-
-      <a href="${songUrl(s.id)}">
-        <img
-          src="${getSongCover(s)}"
-          class="row-cover lazy-cover"
-          data-song="${esc(s.id)}"
-          alt="کاور ${esc(s.title)}"
-        >
-      </a>
-
-      <div class="row-main">
-        <a href="${songUrl(s.id)}">
-          <b>${esc(s.title)}</b>
-        </a>
-
-        <span>${esc(s.artist || "هنرمند نامشخص")}</span>
-      </div>
-
-      <span class="row-album">${esc(s.album || "—")}</span>
-      <span class="row-duration">${esc(s.duration || "—")}</span>
-
-      <div class="row-actions">
-        <button onclick="Player.load(${i}, true)" aria-label="پخش">▶</button>
-        <a href="${esc(s.audio)}" download aria-label="دانلود">⇩</a>
-        <a href="${songUrl(s.id)}">⋯</a>
-      </div>
-    </article>
-  `;
-}
-
-function cardGrid(list, type) {
-  if (!list.length) return empty();
-
-  const urlMap = {
-    playlist: playlistUrl,
-    album: albumUrl,
-    artist: artistUrl,
-    category: categoryUrl
-  };
-
-  return `
-    <div class="entity-grid">
-      ${list.map(x => `
-        <a class="entity-card" href="${urlMap[type](x.id)}">
-          <img
-            src="${x.cover || neonPlaceholder(x.title || x.name || x.id)}"
-            alt="${esc(x.title || x.name || "")}"
-            loading="lazy"
-          >
-
-          <div>
-            <b>${esc(x.title || x.name || "")}</b>
-
-            <span>
-              ${
-                type === "playlist"
-                  ? `${(x.songIds || []).length} آهنگ`
-                  : esc(x.description || x.artist || "")
-              }
-            </span>
-          </div>
-        </a>
-      `).join("")}
-    </div>
-  `;
-}
-
 function renderSongs() {
   app.innerHTML = `
     <div class="page-hero">
@@ -250,7 +266,7 @@ function renderSongs() {
       <p>تمام آهنگ‌های ثبت‌شده در نئون موزیک.</p>
     </div>
 
-    ${songGrid(DATA.songs)}
+    ${songGrid(DATA.songs || [])}
   `;
 }
 
@@ -262,12 +278,12 @@ function renderPlaylists() {
       <p>پلی‌لیست‌های منتخب نئون موزیک.</p>
     </div>
 
-    ${cardGrid(DATA.playlists, "playlist")}
+    ${cardGrid(DATA.playlists || [], "playlist")}
   `;
 }
 
 function renderPlayListDetail() {
-  const p = byId(DATA.playlists, query().get("id"));
+  const p = byId(DATA.playlists || [], query().get("id"));
 
   if (!p) {
     app.innerHTML = empty("پلی‌لیست پیدا نشد.");
@@ -279,7 +295,7 @@ function renderPlayListDetail() {
   app.innerHTML = `
     <section class="detail-hero">
       <img
-        src="${p.cover || neonPlaceholder(p.title)}"
+        src="${p.cover || fallbackCover(p.title)}"
         alt="${esc(p.title)}"
       >
 
@@ -321,7 +337,7 @@ function renderPlayListDetail() {
 }
 
 function renderSong() {
-  const s = byId(DATA.songs, query().get("id"));
+  const s = byId(DATA.songs || [], query().get("id"));
 
   if (!s) {
     app.innerHTML = empty("آهنگ پیدا نشد.");
@@ -330,7 +346,7 @@ function renderSong() {
 
   const idx = DATA.songs.findIndex(x => x.id === s.id);
 
-  const related = DATA.songs
+  const related = (DATA.songs || [])
     .filter(
       x =>
         x.id !== s.id &&
@@ -342,7 +358,7 @@ function renderSong() {
     <section class="song-detail">
       <img
         id="detail-cover"
-        src="${getSongCover(s)}"
+        src="${safeSongCover(s)}"
         alt="کاور ${esc(s.title)}"
       >
 
@@ -391,16 +407,26 @@ function renderSong() {
       </div>
     </section>
 
-    ${section("آهنگ‌های مرتبط", songGrid(related))}
+    <section class="section">
+      <div class="section-head">
+        <h2>آهنگ‌های مرتبط</h2>
+      </div>
+
+      ${songGrid(related)}
+    </section>
   `;
 
-  extractEmbeddedCover(s).then(src => {
-    const img = $("#detail-cover");
+  if (typeof extractEmbeddedCover === "function") {
+    extractEmbeddedCover(s)
+      .then(src => {
+        const img = $("#detail-cover");
 
-    if (img && src) {
-      img.src = src;
-    }
-  });
+        if (img && src) {
+          img.src = src;
+        }
+      })
+      .catch(() => {});
+  }
 }
 
 function renderSearch() {
@@ -429,33 +455,44 @@ function renderSearch() {
     return;
   }
 
-  const songs = DATA.songs.filter(s =>
+  const songs = (DATA.songs || []).filter(s =>
     [s.title, s.artist, s.album, s.category].some(v =>
       String(v || "").toLowerCase().includes(q)
     )
   );
 
-  app.innerHTML =
-    input +
-    section(
-      `نتایج برای «${esc(q)}»`,
-      songGrid(songs)
-    );
+  app.innerHTML = `
+    ${input}
+
+    <section class="section">
+      <div class="section-head">
+        <h2>نتایج برای «${esc(q)}»</h2>
+      </div>
+
+      ${songGrid(songs)}
+    </section>
+  `;
 }
 
 function renderEntityList(kind, title) {
+  const typeMap = {
+    albums: "album",
+    artists: "artist",
+    categories: "category"
+  };
+
   app.innerHTML = `
     <div class="page-hero">
       <span>NEON MUSIC</span>
       <h1>${title}</h1>
     </div>
 
-    ${cardGrid(DATA[kind], kind.slice(0, -1))}
+    ${cardGrid(DATA[kind] || [], typeMap[kind])}
   `;
 }
 
 function renderEntityDetail(kind) {
-  const x = byId(DATA[kind], query().get("id"));
+  const x = byId(DATA[kind] || [], query().get("id"));
 
   if (!x) {
     app.innerHTML = empty("مورد مورد نظر پیدا نشد.");
@@ -465,19 +502,19 @@ function renderEntityDetail(kind) {
   let songs = [];
 
   if (kind === "albums") {
-    songs = DATA.songs.filter(
+    songs = (DATA.songs || []).filter(
       s => s.album === x.id || s.album === x.title
     );
   }
 
   if (kind === "artists") {
-    songs = DATA.songs.filter(
+    songs = (DATA.songs || []).filter(
       s => s.artist === x.name || s.artist === x.title
     );
   }
 
   if (kind === "categories") {
-    songs = DATA.songs.filter(
+    songs = (DATA.songs || []).filter(
       s =>
         s.category === x.name ||
         s.category === x.title ||
@@ -485,17 +522,19 @@ function renderEntityDetail(kind) {
     );
   }
 
+  const title = x.title || x.name || x.id;
+
   app.innerHTML = `
     <section class="detail-hero">
       <img
-        src="${x.cover || neonPlaceholder(x.title || x.name)}"
-        alt="${esc(x.title || x.name)}"
+        src="${x.cover || fallbackCover(title)}"
+        alt="${esc(title)}"
       >
 
       <div>
         <span class="eyebrow">${kind.slice(0, -1).toUpperCase()}</span>
 
-        <h1>${esc(x.title || x.name)}</h1>
+        <h1>${esc(title)}</h1>
 
         <p>${esc(x.description || "")}</p>
 
@@ -531,24 +570,26 @@ function renderText(page) {
     privacy: [
       "حریم خصوصی",
       [
-        "نئون موزیک به حریم خصوصی کاربران احترام می‌گذارد. این نسخه از سایت برای استفاده عادی نیازی به ساخت حساب کاربری ندارد و اطلاعات شخصی کاربران را از طریق فرم ثبت‌نام دریافت نمی‌کند.",
-        "برخی تنظیمات مربوط به تجربه کاربری، مانند انتخاب حالت روشن یا تیره، ممکن است فقط در مرورگر خود کاربر ذخیره شوند تا در مراجعه بعدی همان تنظیمات حفظ شوند.",
-        "نئون موزیک ممکن است برای بهبود عملکرد و امنیت سایت از سرویس‌های استاندارد میزبانی یا ابزارهای فنی استفاده کند. این سرویس‌ها ممکن است داده‌های فنی عمومی مانند نوع مرورگر یا اطلاعات مربوط به درخواست را مطابق سیاست‌های خود پردازش کنند.",
-        "لینک‌های خارجی، از جمله لینک تلگرام، سیاست‌های حریم خصوصی مستقل خود را دارند و استفاده از آن‌ها تابع قوانین همان سرویس است."
+        "نئون موزیک به حریم خصوصی کاربران احترام می‌گذارد.",
+        "برخی تنظیمات مربوط به تجربه کاربری مانند حالت روشن یا تیره ممکن است فقط در مرورگر شما ذخیره شوند.",
+        "لینک‌های خارجی مانند تلگرام سیاست‌های حریم خصوصی مستقل خود را دارند."
       ]
     ],
 
     terms: [
       "قوانین استفاده",
       [
-        "استفاده از نئون موزیک به معنی پذیرش این قوانین است. کاربران موظف‌اند از خدمات و محتوای سایت به‌صورت قانونی و مسئولانه استفاده کنند.",
-        "حقوق مربوط به آثار موسیقی، نام هنرمندان، کاورها و سایر محتوای دارای مالکیت معنوی متعلق به صاحبان قانونی آن‌ها است. انتشار یا استفاده از هر محتوا باید با رعایت حقوق مربوطه انجام شود.",
-        "نئون موزیک تلاش می‌کند اطلاعات و لینک‌های سایت را به‌روز نگه دارد، اما تضمین نمی‌کند که تمام محتوا همیشه بدون خطا یا در دسترس باشد.",
-        "استفاده غیرمجاز از سایت، ایجاد اختلال در عملکرد آن، یا تلاش برای سوءاستفاده از محتوا و زیرساخت سایت مجاز نیست.",
-        "این قوانین ممکن است در آینده برای بهبود خدمات یا رعایت الزامات جدید به‌روزرسانی شوند."
+        "استفاده از نئون موزیک به معنی پذیرش قوانین سایت است.",
+        "حقوق آثار موسیقی و کاورها متعلق به صاحبان قانونی آن‌ها است و استفاده از محتوا باید با رعایت حقوق مربوطه انجام شود.",
+        "استفاده غیرمجاز از سایت یا ایجاد اختلال در عملکرد آن مجاز نیست."
       ]
     ]
   }[page];
+
+  if (!content) {
+    app.innerHTML = empty();
+    return;
+  }
 
   app.innerHTML = `
     <article class="text-page">
@@ -563,7 +604,7 @@ function renderText(page) {
           ? `
             <a
               class="btn primary"
-              href="http://t.me/Crzzygxts"
+              href="${SITE.telegram}"
               target="_blank"
               rel="noopener"
             >
@@ -581,12 +622,12 @@ function playPlaylistShuffle(id) {
 
   if (!list.length) return;
 
-  const s = list[Math.floor(Math.random() * list.length)];
+  const song = list[Math.floor(Math.random() * list.length)];
+  const index = (DATA.songs || []).findIndex(x => x.id === song.id);
 
-  Player.load(
-    DATA.songs.findIndex(x => x.id === s.id),
-    true
-  );
+  if (index >= 0 && typeof Player !== "undefined") {
+    Player.load(index, true);
+  }
 }
 
 window.playPlaylistShuffle = playPlaylistShuffle;
@@ -595,16 +636,23 @@ window.renderCards = () => {
   document
     .querySelectorAll(".lazy-cover[data-song]")
     .forEach(img => {
-      const s = byId(DATA.songs, img.dataset.song);
+      const song = byId(DATA.songs || [], img.dataset.song);
 
-      if (s) {
-        img.src = getSongCover(s);
+      if (song) {
+        img.src = safeSongCover(song);
       }
     });
 };
 
 function boot() {
   app = $("#app");
+
+  if (!app) return;
+
+  if (typeof DATA === "undefined") {
+    app.innerHTML = empty("اطلاعات سایت بارگذاری نشد.");
+    return;
+  }
 
   const page = document.body.dataset.page;
 
@@ -633,9 +681,27 @@ function boot() {
     terms: () => renderText("terms")
   };
 
-  (map[page] || renderHome)();
+  try {
+    (map[page] || renderHome)();
+  } catch (error) {
+    console.error(error);
 
-  preloadCovers();
+    app.innerHTML = `
+      <div class="empty-state">
+        <div>⚠</div>
+        <h3>مشکلی در بارگذاری صفحه پیش آمد</h3>
+        <p>لطفاً صفحه را دوباره بارگذاری کنید.</p>
+      </div>
+    `;
+  }
+
+  if (typeof preloadCovers === "function") {
+    try {
+      preloadCovers();
+    } catch (e) {
+      console.warn("Cover preload failed:", e);
+    }
+  }
 
   const t = $(".theme-toggle");
 
@@ -656,7 +722,7 @@ function boot() {
 
   const ft = $("#footer-telegram");
 
-  if (ft) {
+  if (ft && typeof SITE !== "undefined" && SITE.telegram) {
     ft.href = SITE.telegram;
     ft.target = "_blank";
     ft.rel = "noopener";
