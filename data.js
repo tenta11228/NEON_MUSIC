@@ -24,21 +24,21 @@ const DATA = {
       id: "popular",
       title: "پرطرفدارها",
       description: "منتخبی از آهنگ‌های پرطرفدار",
-      cover: "assets/covers/popular.jpg",
+      cover: "assets/covers/popular.png",
       songIds: []
     },
     {
       id: "relax",
       title: "آرامش‌بخش",
       description: "آهنگ‌های آرام و ملایم",
-      cover: "assets/covers/relax.jpg",
+      cover: "assets/covers/relax.png",
       songIds: ["7rings"]
     },
     {
       id: "foreign",
       title: "خارجی",
       description: "منتخبی از موسیقی‌های خارجی",
-      cover: "assets/covers/foreign.jpg",
+      cover: "assets/covers/foreign.png",
       songIds: ["7rings"]
     }
   ],
