@@ -1,3 +1,4 @@
+```js
 const CoverStore = new Map();
 
 function neonPlaceholder(seed = "NEON MUSIC") {
@@ -13,10 +14,6 @@ function neonPlaceholder(seed = "NEON MUSIC") {
           <stop offset=".52" stop-color="#804dff"/>
           <stop offset="1" stop-color="#35dfff"/>
         </linearGradient>
-
-        <filter id="b">
-          <feGaussianBlur stdDeviation="35"/>
-        </filter>
       </defs>
 
       <rect width="100%" height="100%" fill="#0b0b13"/>
@@ -27,7 +24,6 @@ function neonPlaceholder(seed = "NEON MUSIC") {
         r="180"
         fill="#ff2cab"
         opacity=".4"
-        filter="url(#b)"
       />
 
       <circle
@@ -36,7 +32,6 @@ function neonPlaceholder(seed = "NEON MUSIC") {
         r="220"
         fill="#35dfff"
         opacity=".35"
-        filter="url(#b)"
       />
 
       <rect
@@ -58,9 +53,7 @@ function neonPlaceholder(seed = "NEON MUSIC") {
         font-size="72"
         font-family="Arial"
         font-weight="700"
-      >
-        NEON
-      </text>
+      >NEON</text>
 
       <text
         x="50%"
@@ -70,13 +63,14 @@ function neonPlaceholder(seed = "NEON MUSIC") {
         opacity=".8"
         font-size="24"
         font-family="Arial"
-      >
-        ${safe}
-      </text>
+      >${safe}</text>
     </svg>
   `;
 
-  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  return (
+    "data:image/svg+xml;charset=utf-8," +
+    encodeURIComponent(svg)
+  );
 }
 
 function getSongCover(song) {
@@ -91,78 +85,99 @@ function getSongCover(song) {
   );
 }
 
-function extractEmbeddedCover(song) {
+async function extractEmbeddedCover(song) {
   if (!song) {
-    return Promise.resolve(neonPlaceholder());
+    return neonPlaceholder();
   }
 
   if (CoverStore.has(song.id)) {
-    return Promise.resolve(CoverStore.get(song.id));
+    return CoverStore.get(song.id);
   }
 
   if (!song.audio) {
     const fallback =
-      song.cover ||
-      neonPlaceholder(song.title);
+      song.cover || neonPlaceholder(song.title);
 
     CoverStore.set(song.id, fallback);
-
-    return Promise.resolve(fallback);
+    return fallback;
   }
 
+  // اگر کتابخانه هنوز لود نشده، فعلاً fallback بده
   if (
     typeof window.jsmediatags === "undefined" ||
     !window.jsmediatags ||
     typeof window.jsmediatags.read !== "function"
   ) {
     const fallback =
-      song.cover ||
-      neonPlaceholder(song.title);
+      song.cover || neonPlaceholder(song.title);
 
     CoverStore.set(song.id, fallback);
-
-    return Promise.resolve(fallback);
+    return fallback;
   }
 
-  return new Promise(resolve => {
-    try {
-      window.jsmediatags.read(song.audio, {
-        onSuccess: tag => {
-          try {
-            const pic =
-              tag &&
-              tag.tags &&
-              tag.tags.picture;
+  try {
+    // فایل MP3 را ابتدا به صورت ArrayBuffer می‌گیریم
+    const response = await fetch(song.audio);
 
-            if (
-              !pic ||
-              !pic.data ||
-              !pic.data.length ||
-              !pic.format
-            ) {
+    if (!response.ok) {
+      throw new Error(
+        `Audio fetch failed: ${response.status}`
+      );
+    }
+
+    const buffer = await response.arrayBuffer();
+
+    return await new Promise(resolve => {
+      try {
+        window.jsmediatags.read(buffer, {
+          onSuccess: tag => {
+            try {
+              const picture =
+                tag &&
+                tag.tags &&
+                tag.tags.picture;
+
+              if (
+                !picture ||
+                !picture.data ||
+                !picture.data.length ||
+                !picture.format
+              ) {
+                const fallback =
+                  song.cover ||
+                  neonPlaceholder(song.title);
+
+                CoverStore.set(song.id, fallback);
+                resolve(fallback);
+                return;
+              }
+
+              let binary = "";
+
+              for (let i = 0; i < picture.data.length; i++) {
+                binary += String.fromCharCode(
+                  picture.data[i]
+                );
+              }
+
+              const src =
+                `data:${picture.format};base64,` +
+                btoa(binary);
+
+              CoverStore.set(song.id, src);
+
+              resolve(src);
+            } catch (error) {
               const fallback =
                 song.cover ||
                 neonPlaceholder(song.title);
 
               CoverStore.set(song.id, fallback);
               resolve(fallback);
-              return;
             }
+          },
 
-            let binary = "";
-            const bytes = pic.data;
-
-            for (let i = 0; i < bytes.length; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-
-            const src =
-              `data:${pic.format};base64,${btoa(binary)}`;
-
-            CoverStore.set(song.id, src);
-
-            resolve(src);
-          } catch (error) {
+          onError: () => {
             const fallback =
               song.cover ||
               neonPlaceholder(song.title);
@@ -170,26 +185,31 @@ function extractEmbeddedCover(song) {
             CoverStore.set(song.id, fallback);
             resolve(fallback);
           }
-        },
+        });
+      } catch (error) {
+        const fallback =
+          song.cover ||
+          neonPlaceholder(song.title);
 
-        onError: () => {
-          const fallback =
-            song.cover ||
-            neonPlaceholder(song.title);
+        CoverStore.set(song.id, fallback);
+        resolve(fallback);
+      }
+    });
+  } catch (error) {
+    console.warn(
+      "Could not read embedded cover:",
+      song.title,
+      error
+    );
 
-          CoverStore.set(song.id, fallback);
-          resolve(fallback);
-        }
-      });
-    } catch (error) {
-      const fallback =
-        song.cover ||
-        neonPlaceholder(song.title);
+    const fallback =
+      song.cover ||
+      neonPlaceholder(song.title);
 
-      CoverStore.set(song.id, fallback);
-      resolve(fallback);
-    }
-  });
+    CoverStore.set(song.id, fallback);
+
+    return fallback;
+  }
 }
 
 function preloadCovers(songs) {
@@ -246,5 +266,9 @@ function readDuration(song) {
 function formatTime(s) {
   s = Math.floor(Number(s) || 0);
 
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  return (
+    `${Math.floor(s / 60)}:` +
+    `${String(s % 60).padStart(2, "0")}`
+  );
 }
+```
