@@ -1,44 +1,217 @@
+```html
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>آلبوم‌ها | NEON MUSIC</title><meta name="description" content="آلبوم‌های نئون موزیک">
-<meta name="theme-color" content="#07070d"><link rel="canonical" href="./albums.html">
-<meta property="og:type" content="website"><meta property="og:title" content="آلبوم‌ها | NEON MUSIC"><meta property="og:description" content="آلبوم‌های نئون موزیک">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="responsive.css">
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.7/jsmediatags.min.js"></script>
-<script defer src="data.js"></script><script defer src="audio.js"></script><script defer src="player.js"></script><script defer src="animations.js"></script><script defer src="seo.js"></script><script defer src="app.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>درباره ما | NEON MUSIC</title>
+  <meta name="description" content="درباره نئون موزیک">
+
+  <meta name="theme-color" content="#07070d">
+  <link rel="canonical" href="./about.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="درباره ما | NEON MUSIC">
+  <meta property="og:description" content="درباره نئون موزیک">
+
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+  <script defer src="data.js"></script>
+  <script defer src="audio.js"></script>
+  <script defer src="player.js"></script>
+  <script defer src="animations.js"></script>
+  <script defer src="seo.js"></script>
+  <script defer src="app.js"></script>
 </head>
-<body data-page="albums">
-<div class="aurora aurora-a"></div><div class="aurora aurora-b"></div>
-<header class="topbar">
-  <a class="brand" href="index.html" aria-label="NEON MUSIC"><strong>NEON MUSIC</strong><small>نئون موزیک</small></a>
-  <nav class="desktop-nav"><a href="index.html">خانه</a><a href="songs.html">آهنگ‌ها</a><a href="albums.html">آلبوم‌ها</a><a href="artists.html">هنرمندان</a><a href="playlists.html">پلی‌لیست‌ها</a><a href="categories.html">سبک‌ها</a><a href="search.html">جستجو</a></nav>
-  <div class="header-tools">
-    <form class="header-search" action="search.html"><input name="q" aria-label="جستجو" placeholder="جستجوی آهنگ، خواننده یا آلبوم..."><button aria-label="جستجو">⌕</button></form>
-    <button class="theme-toggle" aria-label="تغییر حالت روز و شب" title="Night / Day">☼</button>
-  </div>
-</header>
-<aside class="sidebar" aria-label="ناوبری اصلی"><a href="index.html" data-tooltip="خانه" aria-label="خانه"><span>⌂</span><b>خانه</b></a><a href="search.html" data-tooltip="جستجو" aria-label="جستجو"><span>⌕</span><b>جستجو</b></a><a href="songs.html" data-tooltip="آهنگ‌ها" aria-label="آهنگ‌ها"><span>♪</span><b>آهنگ‌ها</b></a><a href="playlists.html" data-tooltip="پلی‌لیست‌ها" aria-label="پلی‌لیست‌ها"><span>≡</span><b>پلی‌لیست‌ها</b></a><a href="albums.html" data-tooltip="آلبوم‌ها" aria-label="آلبوم‌ها"><span>▣</span><b>آلبوم‌ها</b></a><a href="artists.html" data-tooltip="هنرمندان" aria-label="هنرمندان"><span>♙</span><b>هنرمندان</b></a><a href="categories.html" data-tooltip="سبک‌ها" aria-label="سبک‌ها"><span>◈</span><b>سبک‌ها</b></a><a href="contact.html" data-tooltip="تماس با ما" aria-label="تماس با ما"><span>✉</span><b>تماس با ما</b></a></aside>
-<main id="app" class="app" tabindex="-1"></main>
-<nav class="mobile-nav" aria-label="ناوبری موبایل">
-  <a href="index.html">⌂<span>خانه</span></a><a href="search.html">⌕<span>جستجو</span></a><a href="songs.html">♪<span>آهنگ‌ها</span></a><a href="playlists.html">≡<span>پلی‌لیست</span></a>
-</nav>
-<section class="player-shell" id="player-shell" aria-label="پخش‌کننده موسیقی">
-  <div class="now-playing"><img id="player-cover" alt=""><div><b id="player-title">آهنگی انتخاب نشده</b><span id="player-artist">برای شروع، یک آهنگ پخش کن</span></div></div>
-  <div class="player-center">
-    <div class="controls"><button id="shuffle-btn" title="پخش تصادفی">⤨</button><button id="prev-btn" title="قبلی">‹‹</button><button id="play-btn" class="play-main" title="پخش">▶</button><button id="next-btn" title="بعدی">››</button><button id="repeat-btn" title="تکرار">↻</button></div>
-    <div class="timeline"><span id="current-time">0:00</span><input id="progress" type="range" min="0" max="100" value="0" aria-label="زمان پخش"><span id="duration">0:00</span></div>
-  </div>
-  <div class="player-right"><canvas id="spectrum" width="160" height="34" aria-label="نمایشگر صدا"></canvas><button id="mute-btn" title="بی‌صدا">🔊</button><input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="صدا"></div>
-</section>
-<footer>
-  <div class="footer-grid"><div><h3>NEON MUSIC</h3><p>نئون موزیک یک تجربه مدرن برای پخش و دانلود موسیقی است؛ بدون آمار و دکمه‌های ساختگی.</p></div>
-  <div><h4>کاوش</h4><a href="songs.html">آهنگ‌ها</a><a href="playlists.html">پلی‌لیست‌ها</a><a href="artists.html">هنرمندان</a></div>
-  <div><h4>اطلاعات</h4><a href="about.html">درباره ما</a><a href="terms.html">قوانین</a><a href="privacy.html">حریم خصوصی</a></div>
-  <div><h4>ارتباط</h4><a id="footer-telegram" href="contact.html">تلگرام</a><a href="contact.html">تماس با ما</a></div></div>
-  <p class="copyright">© NEON MUSIC</p>
-</footer>
-<audio id="audio"></audio>
-</body></html>
+
+<body data-page="about">
+
+  <div class="aurora aurora-a"></div>
+  <div class="aurora aurora-b"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="NEON MUSIC">
+      <strong>NEON MUSIC</strong>
+      <small>نئون موزیک</small>
+    </a>
+
+    <nav class="desktop-nav">
+      <a href="index.html">خانه</a>
+      <a href="songs.html">آهنگ‌ها</a>
+      <a href="albums.html">آلبوم‌ها</a>
+      <a href="artists.html">هنرمندان</a>
+      <a href="playlists.html">پلی‌لیست‌ها</a>
+      <a href="categories.html">سبک‌ها</a>
+      <a href="search.html">جستجو</a>
+    </nav>
+
+    <div class="header-tools">
+      <form class="header-search" action="search.html">
+        <input
+          name="q"
+          aria-label="جستجو"
+          placeholder="جستجوی آهنگ، خواننده یا آلبوم..."
+        >
+        <button aria-label="جستجو">⌕</button>
+      </form>
+
+      <button
+        class="theme-toggle"
+        aria-label="تغییر حالت روز و شب"
+        title="Night / Day"
+      >
+        ☼
+      </button>
+    </div>
+  </header>
+
+  <aside class="sidebar" aria-label="ناوبری اصلی">
+    <a href="index.html" data-tooltip="خانه" aria-label="خانه">
+      <span>⌂</span><b>خانه</b>
+    </a>
+
+    <a href="search.html" data-tooltip="جستجو" aria-label="جستجو">
+      <span>⌕</span><b>جستجو</b>
+    </a>
+
+    <a href="songs.html" data-tooltip="آهنگ‌ها" aria-label="آهنگ‌ها">
+      <span>♪</span><b>آهنگ‌ها</b>
+    </a>
+
+    <a href="playlists.html" data-tooltip="پلی‌لیست‌ها" aria-label="پلی‌لیست‌ها">
+      <span>≡</span><b>پلی‌لیست‌ها</b>
+    </a>
+
+    <a href="albums.html" data-tooltip="آلبوم‌ها" aria-label="آلبوم‌ها">
+      <span>▣</span><b>آلبوم‌ها</b>
+    </a>
+
+    <a href="artists.html" data-tooltip="هنرمندان" aria-label="هنرمندان">
+      <span>♙</span><b>هنرمندان</b>
+    </a>
+
+    <a href="categories.html" data-tooltip="سبک‌ها" aria-label="سبک‌ها">
+      <span>◈</span><b>سبک‌ها</b>
+    </a>
+
+    <a href="contact.html" data-tooltip="تماس با ما" aria-label="تماس با ما">
+      <span>✉</span><b>تماس با ما</b>
+    </a>
+  </aside>
+
+  <main id="app" class="app" tabindex="-1"></main>
+
+  <nav class="mobile-nav" aria-label="ناوبری موبایل">
+    <a href="index.html">⌂<span>خانه</span></a>
+    <a href="search.html">⌕<span>جستجو</span></a>
+    <a href="songs.html">♪<span>آهنگ‌ها</span></a>
+    <a href="playlists.html">≡<span>پلی‌لیست</span></a>
+  </nav>
+
+  <section
+    class="player-shell"
+    id="player-shell"
+    aria-label="پخش‌کننده موسیقی"
+  >
+    <div class="now-playing">
+      <img id="player-cover" alt="">
+
+      <div>
+        <b id="player-title">آهنگی انتخاب نشده</b>
+        <span id="player-artist">
+          برای شروع، یک آهنگ پخش کن
+        </span>
+      </div>
+    </div>
+
+    <div class="player-center">
+      <div class="controls">
+        <button id="shuffle-btn" title="پخش تصادفی">⤨</button>
+        <button id="prev-btn" title="قبلی">‹‹</button>
+        <button id="play-btn" class="play-main" title="پخش">▶</button>
+        <button id="next-btn" title="بعدی">››</button>
+        <button id="repeat-btn" title="تکرار">↻</button>
+      </div>
+
+      <div class="timeline">
+        <span id="current-time">0:00</span>
+        <input
+          id="progress"
+          type="range"
+          min="0"
+          max="100"
+          value="0"
+          aria-label="زمان پخش"
+        >
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <canvas
+        id="spectrum"
+        width="160"
+        height="34"
+        aria-label="نمایشگر صدا"
+      ></canvas>
+
+      <button id="mute-btn" title="بی‌صدا">🔊</button>
+
+      <input
+        id="volume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value="0.8"
+        aria-label="صدا"
+      >
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+
+      <div>
+        <h3>NEON MUSIC</h3>
+        <p>
+          نئون موزیک یک تجربه مدرن برای پخش و دانلود موسیقی است؛
+          بدون آمار و دکمه‌های ساختگی.
+        </p>
+      </div>
+
+      <div>
+        <h4>کاوش</h4>
+        <a href="songs.html">آهنگ‌ها</a>
+        <a href="playlists.html">پلی‌لیست‌ها</a>
+        <a href="artists.html">هنرمندان</a>
+      </div>
+
+      <div>
+        <h4>اطلاعات</h4>
+        <a href="about.html">درباره ما</a>
+        <a href="terms.html">قوانین</a>
+        <a href="privacy.html">حریم خصوصی</a>
+      </div>
+
+      <div>
+        <h4>ارتباط</h4>
+        <a id="footer-telegram" href="contact.html">تلگرام</a>
+        <a href="contact.html">تماس با ما</a>
+      </div>
+
+    </div>
+
+    <p class="copyright">© NEON MUSIC</p>
+  </footer>
+
+  <audio id="audio"></audio>
+
+</body>
+</html>
+```
