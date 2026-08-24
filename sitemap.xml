@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>index.html</loc></url>
+  <url><loc>songs.html</loc></url>
+  <url><loc>song.html</loc></url>
+  <url><loc>albums.html</loc></url>
+  <url><loc>album.html</loc></url>
+  <url><loc>artists.html</loc></url>
+  <url><loc>artist.html</loc></url>
+  <url><loc>playlists.html</loc></url>
+  <url><loc>playlist.html</loc></url>
+  <url><loc>categories.html</loc></url>
+  <url><loc>category.html</loc></url>
+  <url><loc>search.html</loc></url>
+  <url><loc>about.html</loc></url>
+  <url><loc>contact.html</loc></url>
+  <url><loc>privacy.html</loc></url>
+  <url><loc>terms.html</loc></url>
+</urlset>
