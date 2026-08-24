@@ -6,27 +6,43 @@ const SITE = {
 };
 
 const DATA = {
-  // آهنگ جدید را فقط با اضافه کردن یک Object در این آرایه ثبت کن.
   songs: [
-    /*
     {
-      id: "sweet",
-      title: "SWEET",
-      artist: "نام هنرمند",
-      album: "",
-      category: "",
-      audio: "assets/audio/SWEET.mp3",
+      id: "7rings",
+      title: "7 rings",
+      artist: "Ariana Grande",
+      album: "thank u, next",
+      category: "Pop",
+      audio: "assets/audio/7rings.mp3",
       cover: "",
       duration: ""
     }
-    */
   ],
-  // این سه پلی‌لیست دستی هستند. songIds را خودت مدیریت می‌کنی.
+
   playlists: [
-    {id:"popular", title:"پرطرفدارها", description:"منتخب‌های دستی نئون موزیک", cover:"", songIds:[]},
-    {id:"relax", title:"آرامش‌بخش", description:"آهنگ‌های آرام و ملایم", cover:"", songIds:[]},
-    {id:"foreign", title:"خارجی", description:"منتخبی از موسیقی‌های خارجی", cover:"", songIds:[]}
+    {
+      id: "popular",
+      title: "پرطرفدارها",
+      description: "منتخبی از آهنگ‌های پرطرفدار",
+      cover: "",
+      songIds: []
+    },
+    {
+      id: "relax",
+      title: "آرامش‌بخش",
+      description: "آهنگ‌های آرام و ملایم",
+      cover: "",
+      songIds: ["7rings"]
+    },
+    {
+      id: "foreign",
+      title: "خارجی",
+      description: "منتخبی از موسیقی‌های خارجی",
+      cover: "",
+      songIds: ["7rings"]
+    }
   ],
+
   artists: [],
   albums: [],
   categories: []
